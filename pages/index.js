@@ -25,6 +25,28 @@ function ProfileSideBar(propriedades) { //utilizando as props
   )
 }
 
+function ProfileRelationsBox(propriedades) {
+  return (
+    <ProfileRelationsBoxWrapper>
+      <h2 className="smallTitle">
+        {propriedades.title} ({propriedades.items.length})
+      </h2>
+      <ul>
+        {/* {seguidores.map((itemAtual) => {
+          return (
+            <li key={itemAtual}>
+              <a href={`https://github.com/${itemAtual}.png`}>
+                <img src={itemAtual.image} />
+                <span>{itemAtual.title}</span>
+              </a>
+            </li>
+          )
+        })} */}
+      </ul>
+    </ProfileRelationsBoxWrapper>
+  )
+}
+
 export default function Home() {
   const user = 'angelbotazoli';
 
@@ -42,7 +64,34 @@ export default function Home() {
   // const alteracomunidades/setComunidades =comunidades[1]
   console.log(comunidades)
 
-  const favoritePeople = ['juunegreiros', 'omariosouto', 'peas', 'rafaballerini', 'marcobrunodev', 'felipefialho', 'felipefialho']
+  const favoritePeople = ['juunegreiros', 'omariosouto', 'peas', 'rafaballerini', 'marcobrunodev', 'felipefialho']
+
+  // 0 - pegar o array de dados do github
+  // const seguidores = fetch("https://api.github.com/users/peas/followers")
+  //   .then(function (respostaDoServidor) {
+  //     return respostaDoServidor.json();
+  //   })
+  //   .then(function (respostaCompleta) {
+  //     console.log(respostaCompleta)
+  //   })
+
+  const [seguidores, setSeguidores] = React.useState([]);
+
+  // useEffect sempre executa uma funcao, executa sempre que alguma coisa é alterada na tela
+  React.useEffect(function () {
+    fetch("https://api.github.com/users/peas/followers")
+      .then(function (respostaDoServidor) {
+        return respostaDoServidor.json();
+      })
+      .then(function (respostaCompleta) {
+        console.log(respostaCompleta)
+        setSeguidores(respostaCompleta)
+      })
+  }, [])//[] define quantas vezes vai ser executado
+
+  // 1-criar um boz que vai ter um map, baseado nos items do array que pegamos do github
+
+
 
   //para utilizar js ou css dentro do html é necessario usar o {} do React
   //o fragment <></> serve para englobar as tags que não podem ser duplicadas (é um div de mentira)
@@ -62,7 +111,6 @@ export default function Home() {
             </h1>
             <OrkutNostalgicIconSet />
           </Box>
-
           <Box className="subTitle">
             <h2>O que você deseja fazer?</h2>
             <form onSubmit={function handleCriaComunidade(e) {
@@ -103,6 +151,7 @@ export default function Home() {
           </Box>
         </div>
         <div className="profileRelationsArea" style={{ gridArea: 'profileRelationsArea' }}>
+          <ProfileRelationsBox title="Seguidores" items={seguidores} />
           <ProfileRelationsBoxWrapper>
             <h2 className="smallTitle">
               Comunidades ({comunidades.length})
@@ -111,7 +160,7 @@ export default function Home() {
               {comunidades.map((itemAtual) => {
                 return (
                   <li key={itemAtual.id}>
-                    <a href={`/users/${itemAtual.title}`} key={itemAtual.title}>
+                    <a href={`/users/${itemAtual.title}`}>
                       <img src={itemAtual.image} />
                       <span>{itemAtual.title}</span>
                     </a>
