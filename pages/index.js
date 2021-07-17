@@ -53,11 +53,7 @@ export default function Home() {
   // const comunidades =['Alurakut']
   // const [comunidades, setComunidades] = React.useState(['Alurakut']) //Hooks são os uses, retorna o valor do atributo e retorna a forma como podemos altera-lo (tipo get e set)
 
-  const [comunidades, setComunidades] = React.useState([{
-    id: '12313124324234324',
-    title: 'Eu odeio acordar cedo',
-    image: 'https://alurakut.vercel.app/capa-comunidade-01.jpg'
-  }]);
+  const [comunidades, setComunidades] = React.useState([]);
 
   // retornos do react
   // const comunidades = comunidades[0]
@@ -79,6 +75,7 @@ export default function Home() {
 
   // useEffect sempre executa uma funcao, executa sempre que alguma coisa é alterada na tela
   React.useEffect(function () {
+    // GET implicito
     fetch("https://api.github.com/users/peas/followers")
       .then(function (respostaDoServidor) {
         return respostaDoServidor.json();
@@ -87,9 +84,36 @@ export default function Home() {
         console.log(respostaCompleta)
         setSeguidores(respostaCompleta)
       })
+
+    // API GrapQL
+    fetch('https://graphql.datocms.com/', {
+      method: 'POST',
+      headers: {
+        'Authorization': '9ea802086faba3d33379b7bd2021ee',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        "query": `query {
+        allCommunities{
+          title
+          id
+          imageUrl
+          creatorSlug
+        }
+      }` })
+
+    })
+      .then((response) => response.json()) // pega o retorno do response.json() e já retorna
+      .then((respostaCompleta) => {
+        const comunidadesVindasDoDato = respostaCompleta.data.allCommunities
+        console.log(comunidadesVindasDoDato)
+
+        setComunidades(comunidadesVindasDoDato)
+      })
   }, [])//[] define quantas vezes vai ser executado
 
-  // 1-criar um boz que vai ter um map, baseado nos items do array que pegamos do github
+  // 1-criar um box que vai ter um map, baseado nos items do array que pegamos do github
 
 
 
@@ -111,8 +135,9 @@ export default function Home() {
             </h1>
             <OrkutNostalgicIconSet />
           </Box>
-          <Box className="subTitle">
-            <h2>O que você deseja fazer?</h2>
+          <Box >
+            <h2 className="subTitle">O que você deseja fazer?</h2>
+
             <form onSubmit={function handleCriaComunidade(e) {
               e.preventDefault() //barrando o refresh da pagina
               console.log(e)
@@ -121,15 +146,32 @@ export default function Home() {
               console.log(dadosDoForm.get('title'))
 
               const comunidade = {
-                id: new Date().toISOString(),
+                // id: new Date().toISOString(),
+                // title: dadosDoForm.get('title'),
+                // image: dadosDoForm.get('image')
                 title: dadosDoForm.get('title'),
-                image: dadosDoForm.get('image')
+                imageUrl: dadosDoForm.get('image'),
+                creatorSlug: user
               }
 
-              // comunidades.push('Alura Stars')
-              const comunidadesAtualizadas = [...comunidades, comunidade]//spread
-              setComunidades(comunidadesAtualizadas)
-              console.log(comunidadesAtualizadas)
+              //escondendo o Dato, batendo direto na nossa url. Chamando o servidor do next que esta rodando
+              fetch('/api/comunidades', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(comunidade)
+              })
+                .then(async (response) => {
+                  const dados = await response.json();
+                  console.log(dados.registroCriado)
+                  const comunidade = dados.registroCriado
+
+                  // comunidades.push('Alura Stars')
+                  const comunidadesAtualizadas = [...comunidades, comunidade]//spread
+                  setComunidades(comunidadesAtualizadas)
+                  // console.log(comunidadesAtualizadas)
+                })
             }}>
               <div>
                 <input
@@ -160,8 +202,8 @@ export default function Home() {
               {comunidades.map((itemAtual) => {
                 return (
                   <li key={itemAtual.id}>
-                    <a href={`/users/${itemAtual.title}`}>
-                      <img src={itemAtual.image} />
+                    <a href={`/comunidades/${itemAtual.id}`}>
+                      <img src={itemAtual.imageUrl} />
                       <span>{itemAtual.title}</span>
                     </a>
                   </li>
