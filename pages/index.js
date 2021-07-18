@@ -1,4 +1,6 @@
 import React from 'react'
+import nookies from 'nookies'
+import jwt from 'jsonwebtoken'
 import MainGrid from '../src/componentes/MainGrid'
 import Box from '../src/componentes/Box'
 import { AlurakutMenu, OrkutNostalgicIconSet, AlurakutProfileSidebarMenuDefault } from '../src/lib/AlurakutCommons' //usando apenas uma determinada funcao exportada da lib
@@ -32,23 +34,26 @@ function ProfileRelationsBox(propriedades) {
         {propriedades.title} ({propriedades.items.length})
       </h2>
       <ul>
-        {/* {seguidores.map((itemAtual) => {
+        {propriedades.items.slice(0, 6).map((itemAtual) => {
+          console.log("seguidores", itemAtual.login)
+
           return (
-            <li key={itemAtual}>
-              <a href={`https://github.com/${itemAtual}.png`}>
-                <img src={itemAtual.image} />
-                <span>{itemAtual.title}</span>
+            < li key={itemAtual} >
+              <a href={`https://github.com/${itemAtual.login}.png`}>
+                <img src={`${itemAtual.html_url}.png`} />
+                <span>{itemAtual.login}</span>
               </a>
             </li>
           )
-        })} */}
+        })}
       </ul>
-    </ProfileRelationsBoxWrapper>
+    </ProfileRelationsBoxWrapper >
   )
 }
 
-export default function Home() {
-  const user = 'angelbotazoli';
+export default function Home(props) {
+  // const user = 'angelbotazoli';
+  const user = props.githubUser;
 
   // const comunidades =['Alurakut']
   // const [comunidades, setComunidades] = React.useState(['Alurakut']) //Hooks são os uses, retorna o valor do atributo e retorna a forma como podemos altera-lo (tipo get e set)
@@ -60,7 +65,7 @@ export default function Home() {
   // const alteracomunidades/setComunidades =comunidades[1]
   console.log(comunidades)
 
-  const favoritePeople = ['juunegreiros', 'omariosouto', 'peas', 'rafaballerini', 'marcobrunodev', 'felipefialho']
+  const favoritePeople = ['juunegreiros', 'omariosouto', 'peas', 'rafaballerini', 'marcobrunodev', 'felipefialho', 'filipedeschamps']
 
   // 0 - pegar o array de dados do github
   // const seguidores = fetch("https://api.github.com/users/peas/followers")
@@ -199,7 +204,7 @@ export default function Home() {
               Comunidades ({comunidades.length})
             </h2>
             <ul>
-              {comunidades.map((itemAtual) => {
+              {comunidades.slice(0, 6).map((itemAtual) => {
                 return (
                   <li key={itemAtual.id}>
                     <a href={`/comunidades/${itemAtual.id}`}>
@@ -216,7 +221,7 @@ export default function Home() {
               Pessoas da comunidade ({favoritePeople.length})
             </h2>
             <ul>
-              {favoritePeople.map((itemAtual) => {
+              {favoritePeople.slice(0, 6).map((itemAtual) => {
                 return (
                   <li key={itemAtual}>
                     <a href={`/users/${itemAtual}`} >
@@ -232,4 +237,53 @@ export default function Home() {
       </MainGrid>
     </>
   )
+}
+
+//usuário manda a requisição, antes do conteúdo HTML ser gerado e enviado para o navegador, conseguimos validar se ele está logado ou não
+export async function getServerSideProps(context) {
+  // console.log("token", nookies.get(context).USER_TOKEN)
+  const cookies = nookies.get(context)
+  const token = cookies.USER_TOKEN //retorna token salvo no cookies
+
+  //decofida o cookies
+  console.log('teste', jwt.decode(token))
+
+
+  // //valida token (usuario valido no github)
+  // const { isAuthenticated } = await fetch('https://alurakut.vercel.app/api/auth', {
+  //   headers: {
+  //     Authorization: token
+  //   }
+  // })
+  //   .then((resposta) => resposta.json())
+  // // .then((resultado) => {
+  // //   console.log(resultado)
+  // //   // console.log(isAuthenticated)
+  // // })
+
+  //valida token (usuario valido no github) 
+  const { isAuthenticated } = await fetch("https://alurakut-nu-dun.vercel.app/api/auth", {// http://localhost:3000/api/auth
+    headers: {
+      Authorization: token,
+    },
+  })
+    .then((resposta) => resposta.json())
+  console.log("Esta autenticado: ", isAuthenticated)
+
+  if (!isAuthenticated) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      }
+    }
+  }
+
+  const { githubUser } = jwt.decode(token);//o nome do ultimo parametro vai ser o nome da variavel (destruct)
+  return {
+    props: {
+      // githubUser: 'angelbotazoli'
+      githubUser
+    },
+  }
 }
