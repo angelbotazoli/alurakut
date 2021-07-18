@@ -9,8 +9,8 @@
 </p>
 
 <p align="center">
-  <img alt="alurakut1" src="alurakut1.png" width="100%">
-  <img alt="alurakut2" src="alurakut2.png" width="100%">
+  <img alt="login" src="login.png" width="100%">
+  <img alt="home" src="home.png" width="100%">
 </p>
 
 ## 🔧 Tecnologias 
@@ -43,10 +43,15 @@ $ na linha 265, alterar https://alurakut-nu-dun.vercel.app/api/auth por http://l
 $ npm start
 ```
 
+##   Deploy com Vercel
+
+[Alurakut](https://alurakut-nu-dun.vercel.app)
+
 ## 💻 Projeto
 
-O Alurakut é uma replica do Orkut.
+O Alurakut é uma replica do Orkut, sendo possível logar com sua conta github e adicionar comunidades e realizar logout.
 
 <br>
 
 ---
+Desenvolvido durante [imersaoReact](https://www.alura.com.br/imersao-react)
